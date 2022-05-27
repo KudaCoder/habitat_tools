@@ -101,9 +101,10 @@ class APITools:
     def get_config(self):
         return self.request("config")
 
-    def set_config(self, data):
-        data = self.convert_dt_to_iso(data)
-        return self.request("config", method="post", json=data)
+    def set_config(self, data=None):
+        if data is not None:
+            data = self.convert_dt_to_iso(data)
+        return self.request("config", method="post", data=data)
 
-    def new_config(self, data=None):
-        return self.request("config/new/")
+    def new_config(self):
+        return self.request("config/default/")
