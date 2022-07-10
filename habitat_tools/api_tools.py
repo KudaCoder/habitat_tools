@@ -12,6 +12,7 @@ from .exceptions import (
 )
 
 load_dotenv()
+DEBUG = os.environ.get("DEBUG")
 
 
 class APITools:
@@ -21,8 +22,9 @@ class APITools:
         "update": requests.patch,
         "delete": requests.delete,
     }
-    # DEFAULT_URL = "http://localhost:8000/api"
     DEFAULT_URL = "https://janet-habitat-api.herokuapp.com/api"
+    if DEBUG:
+        DEFAULT_URL = "http://localhost:5000/api"
 
     def __init__(self, api_url=None):
         self.api_url = api_url
@@ -38,13 +40,6 @@ class APITools:
             raise ConnectionException(
                 "Incorrect API URL or API unreachable!", key="APIError"
             )
-
-    @staticmethod
-    def convert_dt_to_iso(data):
-        for k, v in data.items():
-            if isinstance(v, datetime) or isinstance(v, time):
-                data[k] = v.isoformat()
-        return data
 
     def request(self, url, method="get", data=None):
         try:
