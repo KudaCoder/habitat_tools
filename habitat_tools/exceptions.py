@@ -8,7 +8,7 @@ class HabitatException(Exception):
         self.message = message
 
     def json(self):
-        return json.dumps({"Error": {self.key: self.message}})
+        return {"error": {self.key: self.message}}
 
 
 class ConnectionException(HabitatException):
