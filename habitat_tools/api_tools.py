@@ -10,9 +10,11 @@ from .exceptions import (
     RequestException,
     ResponseException,
 )
+from . import utils
 
 load_dotenv()
 DEBUG = os.environ.get("DEBUG")
+DEFAULT_URL = os.environ.get("DATABASE_URL")
 
 
 class APITools:
@@ -22,9 +24,10 @@ class APITools:
         "update": requests.patch,
         "delete": requests.delete,
     }
-    DEFAULT_URL = "https://janet-habitat-api.herokuapp.com/api"
+    if DEFAULT_URL is None:
+        DEFAULT_URL = "https://habitat-api.onrender.com/api"
     if DEBUG:
-        DEFAULT_URL = "http://localhost:5000/api"
+        DEFAULT_URL = "http://habitat-api:5000/api"
 
     def __init__(self, api_url=None):
         self.api_url = api_url
@@ -39,23 +42,22 @@ class APITools:
         except Exception:
             raise ConnectionException(
                 "Incorrect API URL or API unreachable!", key="APIError"
-            )
+            ).json()
 
     def request(self, url, method="get", data=None):
         try:
-            resp = self.handle_request(url, method=method, data=data)
+            resp = self.handle_request(url, method, data)
         except Exception as e:
-            resp = e.json()
-        return resp
+            resp = e
+        return resp.json()
 
-    def handle_request(self, url, method="get", data=None):
+    def handle_request(self, url, method, data):
         if data is not None and not isinstance(data, dict):
             raise DataException("Data missing or Dict format invalid!", key="DataError")
 
         req_method = self.METHODS.get(method)
         if req_method is None:
             raise RequestException("Invalid API request method type", key="DataError")
-
         try:
             resp = req_method(
                 f"{self.api_url}/{url}/",
@@ -71,7 +73,7 @@ class APITools:
             raise ResponseException(message, key="APIError")
 
         try:
-            return resp.json()
+            return resp
         except Exception:
             raise DataException("API JSON response format invalid!", key="APIError")
 
@@ -98,8 +100,11 @@ class APITools:
 
     def set_config(self, data=None):
         if data is not None:
-            data = self.convert_dt_to_iso(data)
+            data = utils.convert_dt_to_iso(data)
         return self.request("config", method="post", data=data)
 
     def new_config(self):
         return self.request("config/default/")
+
+    def get_stats(self):
+        return self.request("config/stats/")
