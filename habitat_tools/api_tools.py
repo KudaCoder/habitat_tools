@@ -40,42 +40,40 @@ class APITools:
         try:
             resp = requests.get(f"{url}/reading")
         except Exception:
-            raise ConnectionException(
-                "Incorrect API URL or API unreachable!", key="APIError"
-            ).json()
+            raise ConnectionException("Incorrect API URL or API unreachable!").json()
 
     def request(self, url, method="get", data=None):
         try:
             resp = self.handle_request(url, method, data)
         except Exception as e:
-            resp = e
-        return resp.json()
+            resp = e.json()
+        return resp
 
     def handle_request(self, url, method, data):
         if data is not None and not isinstance(data, dict):
-            raise DataException("Data missing or Dict format invalid!", key="DataError")
+            raise DataException("Data missing or Dict format invalid!").json()
 
         req_method = self.METHODS.get(method)
         if req_method is None:
-            raise RequestException("Invalid API request method type", key="DataError")
+            raise RequestException("Invalid API request method type").json()
         try:
             resp = req_method(
                 f"{self.api_url}/{url}/",
                 json=data,
             )
         except Exception:
-            raise ConnectionException("Incorrect API URL or API unreachable!")
+            raise ConnectionException("Incorrect API URL or API unreachable!").json()
 
         if not (200 <= resp.status_code < 300):
             message = resp.json().get("message")
             if message is None:
                 message = resp.json().get("status")
-            raise ResponseException(message, key="APIError")
+            raise ResponseException(message).json()
 
         try:
-            return resp
+            return resp.json()
         except Exception:
-            raise DataException("API JSON response format invalid!", key="APIError")
+            raise DataException("API JSON response format invalid!").json()
 
     def add_reading(self, temperature=None, humidity=None):
         return self.request(

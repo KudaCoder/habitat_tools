@@ -2,13 +2,12 @@ import json
 
 
 class HabitatException(Exception):
-    def __init__(self, message, key=None, *args, **kwargs):
+    def __init__(self, message, *args, **kwargs):
         super().__init__(message, *args, **kwargs)
-        self.key = key
         self.message = message
 
     def json(self):
-        return {"error": {self.key: self.message}}
+        return {"error": self.message}
 
 
 class ConnectionException(HabitatException):
